@@ -116,7 +116,8 @@ const Player = () => {
     const seriesId = player.metaItem !== null && player.metaItem.type === 'Ready' ? player.metaItem.content.id : null;
     const season = player.seriesInfo !== null ? player.seriesInfo.season : null;
     const episode = player.seriesInfo !== null ? player.seriesInfo.episode : null;
-    const runtimeSeconds = video.state.duration;
+    // detection-engine's contract is in seconds; video.state.duration is in milliseconds.
+    const runtimeSeconds = typeof video.state.duration === 'number' ? video.state.duration / 1000 : null;
     const skipIntroStream = player.selected?.stream ?? null;
     const streamingServerBaseUrl = streamingServer.baseUrl ?
         (casting ? streamingServer.baseUrl : streamingServer.selected.transportUrl)
@@ -124,22 +125,24 @@ const Player = () => {
         null;
     const streamUrl = skipIntroStream?.url ??
         (streamingServerBaseUrl && skipIntroStream?.infoHash && typeof skipIntroStream.fileIdx === 'number' ?
-            `${streamingServerBaseUrl}/${encodeURIComponent(skipIntroStream.infoHash)}/${encodeURIComponent(skipIntroStream.fileIdx)}`
+            new URL(`${encodeURIComponent(skipIntroStream.infoHash)}/${encodeURIComponent(skipIntroStream.fileIdx)}`, streamingServerBaseUrl).href
             :
             null);
     const [skipSegment, setSkipSegment] = React.useState(null);
     React.useEffect(() => {
         setSkipSegment(null); // reset when the episode changes
-        if (!seriesId || !season || !episode || !runtimeSeconds || !streamUrl) return;
+        if (!seriesId || season === null || season === undefined || episode === null || episode === undefined || !runtimeSeconds || !streamUrl) return;
 
+        let ignore = false;
         fetch('http://127.0.0.1:4747/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ seriesId, season, episode, runtimeSeconds, streamUrl }),
         })
             .then((res) => res.json())
-            .then((data) => setSkipSegment(data.segment || null))
-            .catch(() => setSkipSegment(null)); // network/engine failure -> no button, per spec §5
+            .then((data) => { if (!ignore) setSkipSegment(data.segment || null); })
+            .catch(() => { if (!ignore) setSkipSegment(null); }); // network/engine failure -> no button, per spec §5
+        return () => { ignore = true; };
     }, [seriesId, season, episode, runtimeSeconds, streamUrl]);
 
     const menusOpen = React.useMemo(() => {
