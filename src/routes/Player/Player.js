@@ -18,6 +18,7 @@ const { default: Buffering } = require('./Buffering');
 const VolumeChangeIndicator = require('./VolumeChangeIndicator');
 const Error = require('./Error');
 const ControlBar = require('./ControlBar');
+const { default: SkipIntroButton } = require('./SkipIntroButton');
 const NextVideoPopup = require('./NextVideoPopup');
 const StatisticsMenu = require('./StatisticsMenu');
 const OptionsMenu = require('./OptionsMenu');
@@ -111,6 +112,26 @@ const Player = () => {
         video.state.time < video.state.duration &&
         video.state.duration - video.state.time <= settings.nextVideoNotificationDuration;
     const [sideDrawerOpen, , closeSideDrawer, toggleSideDrawer] = useBinaryState(false);
+
+    const seriesId = player.metaItem !== null && player.metaItem.type === 'Ready' ? player.metaItem.content.id : null;
+    const season = player.seriesInfo !== null ? player.seriesInfo.season : null;
+    const episode = player.seriesInfo !== null ? player.seriesInfo.episode : null;
+    const runtimeSeconds = video.state.duration;
+    const streamUrl = player.selected?.stream?.url ?? null;
+    const [skipSegment, setSkipSegment] = React.useState(null);
+    React.useEffect(() => {
+        setSkipSegment(null); // reset when the episode changes
+        if (!seriesId || !season || !episode || !runtimeSeconds || !streamUrl) return;
+
+        fetch('http://127.0.0.1:4747/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ seriesId, season, episode, runtimeSeconds, streamUrl }),
+        })
+            .then((res) => res.json())
+            .then((data) => setSkipSegment(data.segment || null))
+            .catch(() => setSkipSegment(null)); // network/engine failure -> no button, per spec §5
+    }, [seriesId, season, episode, runtimeSeconds, streamUrl]);
 
     const menusOpen = React.useMemo(() => {
         return optionsMenuOpen || subtitlesMenuOpen || audioMenuOpen || speedMenuOpen || statisticsMenuOpen || castDevicesMenuOpen || sideDrawerOpen || nextVideoPopupOpen;
@@ -1066,6 +1087,11 @@ const Player = () => {
                 onMouseMove={onBarMouseMove}
                 onMouseOver={onBarMouseMove}
                 onTouchEnd={onContainerMouseLeave}
+            />
+            <SkipIntroButton
+                segment={skipSegment}
+                currentTime={video.state.time}
+                onSkip={commitSeek}
             />
             <Indicator
                 className={classnames(styles['layer'], styles['indicator-layer'])}

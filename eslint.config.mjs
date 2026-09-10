@@ -102,5 +102,16 @@ export default [
         rules: {
             'react/display-name': 'off',
         }
+    },
+    {
+        files: ['**/*.test.js'],
+        languageOptions: {
+            globals: {
+                ...globals.jest,
+            }
+        },
+        rules: {
+            '@typescript-eslint/no-empty-function': 'off',
+        }
     }
 ];
