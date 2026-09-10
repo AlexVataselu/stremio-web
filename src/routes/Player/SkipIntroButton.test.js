@@ -55,4 +55,16 @@ describe('SkipIntroButton', () => {
         fireEvent.click(screen.getByRole('button', { name: /skip intro/i }));
         expect(onSkip).toHaveBeenCalledWith(60);
     });
+
+    test('applies the passed className to the button so it can be positioned/layered', () => {
+        render(
+            <SkipIntroButton
+                className="layer skip-intro-layer"
+                segment={{ start: 30, end: 60 }}
+                currentTime={45}
+                onSkip={() => {}}
+            />
+        );
+        expect(screen.getByRole('button', { name: /skip intro/i })).toHaveClass('layer', 'skip-intro-layer');
+    });
 });

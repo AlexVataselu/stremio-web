@@ -1101,9 +1101,10 @@ const Player = () => {
                 onTouchEnd={onContainerMouseLeave}
             />
             <SkipIntroButton
+                className={classnames(styles['layer'], styles['skip-intro-layer'])}
                 segment={skipSegment}
-                currentTime={video.state.time}
-                onSkip={commitSeek}
+                currentTime={typeof (keyboardSeekTime ?? video.state.time) === 'number' ? (keyboardSeekTime ?? video.state.time) / 1000 : null}
+                onSkip={(end) => commitSeek(end * 1000)}
             />
             <Indicator
                 className={classnames(styles['layer'], styles['indicator-layer'])}

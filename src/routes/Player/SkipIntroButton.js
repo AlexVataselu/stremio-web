@@ -4,19 +4,20 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { t } from 'i18next';
 
-function SkipIntroButton({ segment, currentTime, onSkip }) {
+function SkipIntroButton({ className, segment, currentTime, onSkip }) {
     if (!segment) return null;
     const isActive = currentTime >= segment.start && currentTime < segment.end;
     if (!isActive) return null;
 
     return (
-        <button type="button" onClick={() => onSkip(segment.end)}>
+        <button type="button" className={className} onClick={() => onSkip(segment.end)}>
             {t('PLAYER_SKIP_INTRO', { defaultValue: 'Skip Intro' })}
         </button>
     );
 }
 
 SkipIntroButton.propTypes = {
+    className: PropTypes.string,
     segment: PropTypes.shape({
         start: PropTypes.number.isRequired,
         end: PropTypes.number.isRequired,
