@@ -8,11 +8,14 @@ import { render, screen, fireEvent } from '@testing-library/react';
 
 // The real app initializes i18next asynchronously (see src/index.js) with
 // translations from the external `stremio-translations` package, which does
-// not yet contain a key for this new button. Stub `t` here so this isolated
-// unit test doesn't depend on that init/package and still sees the button's
-// `defaultValue` text, matching what real users see once i18next is ready.
-jest.mock('i18next', () => ({
-    t: (key, options) => (options && options.defaultValue) || key,
+// not yet contain a key for this new button. Stub the react-i18next hook
+// here so this isolated unit test doesn't depend on that init/package and
+// still sees the button's `defaultValue` text, matching what real users see
+// once i18next is ready.
+jest.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key, options) => (options && options.defaultValue) || key,
+    }),
 }));
 
 import SkipIntroButton from './SkipIntroButton';

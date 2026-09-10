@@ -2,9 +2,10 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
 
 function SkipIntroButton({ className, segment, currentTime, onSkip }) {
+    const { t } = useTranslation();
     if (!segment) return null;
     const isActive = currentTime >= segment.start && currentTime < segment.end;
     if (!isActive) return null;

@@ -19,7 +19,7 @@ html:not(.active-slider-within) {
     .player-container.overlayHidden {
         cursor: none;
 
-        .nav-bar-layer, .control-bar-layer, .menu-layer, .side-drawer-button-layer, .skip-intro-layer {
+        .nav-bar-layer, .control-bar-layer, .menu-layer, .side-drawer-button-layer {
             opacity: 0;
             transition: opacity 200ms;
         }
@@ -146,21 +146,26 @@ html:not(.active-slider-within) {
         }
 
         &.skip-intro-layer {
+            // Docked just above the seek bar (not tied to the control bar's
+            // own auto-hide -- see the `overlayHidden` rule above) so it
+            // reads as "near the progress bar" and stays visible even when
+            // the rest of the controls have faded from mouse idle.
             top: initial;
             left: initial;
-            right: 4rem;
-            bottom: 10rem;
+            right: 2rem;
+            bottom: 8.5rem;
             width: auto;
             height: auto;
             background: transparent;
             padding: 1rem 1.5rem;
             border: none;
             border-radius: var(--border-radius);
-            background-color: var(--modal-background-color);
-            color: var(--primary-foreground-color);
+            background-color: var(--modal-background-color, rgba(20, 20, 20, 0.9));
+            color: var(--primary-foreground-color, #fff);
             font-size: 1.6rem;
             font-weight: 500;
             cursor: pointer;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.4);
             transition: opacity 200ms, background-color 100ms;
 
             &:hover, &:focus {

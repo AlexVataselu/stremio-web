@@ -134,7 +134,7 @@ const Player = () => {
         if (!seriesId || season === null || season === undefined || episode === null || episode === undefined || !runtimeSeconds || !streamUrl) return;
 
         let ignore = false;
-        fetch('http://127.0.0.1:4747/analyze', {
+        fetch('/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ seriesId, season, episode, runtimeSeconds, streamUrl }),
