@@ -117,7 +117,16 @@ const Player = () => {
     const season = player.seriesInfo !== null ? player.seriesInfo.season : null;
     const episode = player.seriesInfo !== null ? player.seriesInfo.episode : null;
     const runtimeSeconds = video.state.duration;
-    const streamUrl = player.selected?.stream?.url ?? null;
+    const skipIntroStream = player.selected?.stream ?? null;
+    const streamingServerBaseUrl = streamingServer.baseUrl ?
+        (casting ? streamingServer.baseUrl : streamingServer.selected.transportUrl)
+        :
+        null;
+    const streamUrl = skipIntroStream?.url ??
+        (streamingServerBaseUrl && skipIntroStream?.infoHash && typeof skipIntroStream.fileIdx === 'number' ?
+            `${streamingServerBaseUrl}/${encodeURIComponent(skipIntroStream.infoHash)}/${encodeURIComponent(skipIntroStream.fileIdx)}`
+            :
+            null);
     const [skipSegment, setSkipSegment] = React.useState(null);
     React.useEffect(() => {
         setSkipSegment(null); // reset when the episode changes
