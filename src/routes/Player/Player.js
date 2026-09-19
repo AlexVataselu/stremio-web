@@ -19,6 +19,7 @@ const VolumeChangeIndicator = require('./VolumeChangeIndicator');
 const Error = require('./Error');
 const ControlBar = require('./ControlBar');
 const { default: SkipIntroButton } = require('./SkipIntroButton');
+const useSkipIntroStreamUrl = require('./useSkipIntroStreamUrl');
 const NextVideoPopup = require('./NextVideoPopup');
 const StatisticsMenu = require('./StatisticsMenu');
 const OptionsMenu = require('./OptionsMenu');
@@ -118,19 +119,18 @@ const Player = () => {
     const episode = player.seriesInfo !== null ? player.seriesInfo.episode : null;
     // detection-engine's contract is in seconds; video.state.duration is in milliseconds.
     const runtimeSeconds = typeof video.state.duration === 'number' ? video.state.duration / 1000 : null;
-    const skipIntroStream = player.selected?.stream ?? null;
     const streamingServerBaseUrl = streamingServer.baseUrl ?
         (casting ? streamingServer.baseUrl : streamingServer.selected.transportUrl)
         :
         null;
-    const streamUrl = skipIntroStream?.url ??
-        (streamingServerBaseUrl && skipIntroStream?.infoHash && typeof skipIntroStream.fileIdx === 'number' ?
-            new URL(`${encodeURIComponent(skipIntroStream.infoHash)}/${encodeURIComponent(skipIntroStream.fileIdx)}`, streamingServerBaseUrl).href
-            :
-            null);
-    const [skipSegment, setSkipSegment] = React.useState(null);
+    const streamUrl = useSkipIntroStreamUrl(
+        player.stream?.type === 'Ready' ? player.stream.content : null,
+        streamingServerBaseUrl,
+        player.seriesInfo
+    );
+    const [skipSegments, setSkipSegments] = React.useState([]);
     React.useEffect(() => {
-        setSkipSegment(null); // reset when the episode changes
+        setSkipSegments([]); // reset when the episode changes
         if (!seriesId || season === null || season === undefined || episode === null || episode === undefined || !runtimeSeconds || !streamUrl) return;
 
         let ignore = false;
@@ -140,8 +140,8 @@ const Player = () => {
             body: JSON.stringify({ seriesId, season, episode, runtimeSeconds, streamUrl }),
         })
             .then((res) => res.json())
-            .then((data) => { if (!ignore) setSkipSegment(data.segment || null); })
-            .catch(() => { if (!ignore) setSkipSegment(null); }); // network/engine failure -> no button, per spec §5
+            .then((data) => { if (!ignore) setSkipSegments(data.segments || (data.segment ? [data.segment] : [])); })
+            .catch(() => { if (!ignore) setSkipSegments([]); }); // network/engine failure -> no button, per spec §5
         return () => { ignore = true; };
     }, [seriesId, season, episode, runtimeSeconds, streamUrl]);
 
@@ -1102,7 +1102,8 @@ const Player = () => {
             />
             <SkipIntroButton
                 className={classnames(styles['layer'], styles['skip-intro-layer'])}
-                segment={skipSegment}
+                segments={skipSegments}
+                duration={runtimeSeconds}
                 currentTime={typeof (keyboardSeekTime ?? video.state.time) === 'number' ? (keyboardSeekTime ?? video.state.time) / 1000 : null}
                 onSkip={(end) => commitSeek(end * 1000)}
             />

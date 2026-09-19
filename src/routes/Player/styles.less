@@ -146,30 +146,37 @@ html:not(.active-slider-within) {
         }
 
         &.skip-intro-layer {
-            // Docked just above the seek bar (not tied to the control bar's
-            // own auto-hide -- see the `overlayHidden` rule above) so it
-            // reads as "near the progress bar" and stays visible even when
-            // the rest of the controls have faded from mouse idle.
+            // Mirrors the seek bar's horizontal track box (ControlBar padding 2rem
+            // + time label 5.5rem + slider margin of one 1.2rem thumb) so the button
+            // can sit above the intro's spot on the bar. It lives outside the
+            // control bar so it stays visible when the controls auto-hide.
             top: initial;
-            left: initial;
-            right: 2rem;
+            left: calc(var(--safe-area-inset-left) + 8.7rem);
+            right: calc(var(--safe-area-inset-right) + 8.7rem);
             bottom: 8.5rem;
-            width: auto;
-            height: auto;
-            background: transparent;
-            padding: 1rem 1.5rem;
-            border: none;
-            border-radius: var(--border-radius);
-            background-color: var(--modal-background-color, rgba(20, 20, 20, 0.9));
-            color: var(--primary-foreground-color, #fff);
-            font-size: 1.6rem;
-            font-weight: 500;
-            cursor: pointer;
-            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.4);
-            transition: opacity 200ms, background-color 100ms;
+            overflow: visible;
+            pointer-events: none;
 
-            &:hover, &:focus {
-                background-color: var(--overlay-color, rgba(255, 255, 255, 0.1));
+            button {
+                position: relative;
+                display: inline-block;
+                pointer-events: auto;
+                padding: 1rem 1.5rem;
+                border: none;
+                border-radius: var(--border-radius);
+                background-color: var(--modal-background-color, rgba(20, 20, 20, 0.9));
+                color: var(--primary-foreground-color, #fff);
+                font-size: 1.6rem;
+                font-weight: 500;
+                white-space: nowrap;
+                cursor: pointer;
+                box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.4);
+                transition: background-color 100ms;
+                animation: skip-intro-slide-in 200ms ease-out;
+
+                &:hover, &:focus {
+                    background-color: var(--overlay-color, rgba(255, 255, 255, 0.1));
+                }
             }
         }
     }
@@ -193,5 +200,25 @@ html:not(.active-slider-within) {
                 bottom: 11rem;
             }
         }
+    }
+}
+
+@keyframes skip-intro-slide-in {
+    from {
+        opacity: 0;
+        translate: -2rem 0;
+    }
+
+    to {
+        opacity: 1;
+        translate: 0 0;
+    }
+}
+
+@media only screen and (max-width: @minimum) {
+    .player-container .layer.skip-intro-layer {
+        // ControlBar drops its padding here and gives the seek bar a 1.5rem margin.
+        left: calc(var(--safe-area-inset-left) + 8.2rem);
+        right: calc(var(--safe-area-inset-right) + 8.2rem);
     }
 }

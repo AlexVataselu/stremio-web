@@ -9,6 +9,7 @@
         "start": "webpack serve --mode development",
         "start-prod": "webpack serve --mode production",
         "build": "webpack --mode production",
+        "build-local": "webpack --mode production --env SERVICE_WORKER_DISABLED=true",
         "test": "jest",
         "lint": "eslint src --max-warnings 287",
         "scan-translations": "pnpx jest ./tests/i18nScan.test.js"
