@@ -9,7 +9,7 @@
         "start": "webpack serve --mode development",
         "start-prod": "webpack serve --mode production",
         "build": "webpack --mode production",
-        "build-local": "webpack --mode production --env SERVICE_WORKER_DISABLED=true",
+        "build-local": "webpack --mode production --env SERVICE_WORKER_DISABLED=true --env SENTRY_DSN=https://372f6b1db35ea7096b2eea5a6d804eb9@o4512143525806080.ingest.de.sentry.io/4512153143214160",
         "test": "jest",
         "lint": "eslint src --max-warnings 287",
         "scan-translations": "pnpx jest ./tests/i18nScan.test.js"
