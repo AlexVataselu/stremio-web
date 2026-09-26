@@ -1,21 +1,24 @@
 // Copyright (C) 2017-2026 Smart code 203358507
 
 // Keeps secrets out of Sentry events: addon urls carry debrid keys in their
-// path (…/realdebrid=KEY/stream/…), stream urls carry debrid tokens, the
-// player route's hash holds the stream, and an infoHash names what is watched.
+// path (…/realdebrid=KEY/stream/…), stream urls carry debrid tokens or
+// credentials (user:pass@host), the player route's hash holds the stream, and
+// an infoHash or Stremio id (tt0068098, kitsu:1376) names what is watched.
 // Mirrors detection-engine/src/scrub.js.
-const URL_PATTERN = /\b(https?):\/\/([^\s/?#"'<>]+)([^\s?#"'<>]*)([?#][^\s"'<>]*)?/gi;
+const URL_PATTERN = /\b(https?):\/\/([^\s/?#"'<>@]*@)?([^\s/?#"'<>@]+)([^\s?#"'<>]*)([?#][^\s"'<>]*)?/gi;
 const LOOPBACK_HOST = /^(127\.0\.0\.1|localhost|\[::1\])(:\d+)?$/i;
 const INFO_HASH_PATTERN = /\b[0-9a-f]{40}\b/gi;
+const SERIES_ID_PATTERN = /\b(tt\d{5,}|(kitsu|tmdb|tvdb|mal|anilist|anidb|imdb):\d+)\b/gi;
 
-const scrubUrl = (_, scheme, host, pathPart, query) => {
+const scrubUrl = (_, scheme, userinfo, host, pathPart, query) => {
     const kept = LOOPBACK_HOST.test(host) ? pathPart : (pathPart ? '/[redacted]' : '');
-    return `${scheme}://${host}${kept}${query ? '?[redacted]' : ''}`;
+    return `${scheme}://${userinfo ? '[redacted]@' : ''}${host}${kept}${query ? '?[redacted]' : ''}`;
 };
 
 const scrubText = (text) => text
     .replace(URL_PATTERN, scrubUrl)
-    .replace(INFO_HASH_PATTERN, '[infohash]');
+    .replace(INFO_HASH_PATTERN, '[infohash]')
+    .replace(SERIES_ID_PATTERN, '[series]');
 
 const scrubDeep = (value, seen = new WeakSet()) => {
     if (typeof value === 'string') return scrubText(value);

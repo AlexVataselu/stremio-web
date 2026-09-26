@@ -20,6 +20,7 @@ const Error = require('./Error');
 const ControlBar = require('./ControlBar');
 const { default: SkipIntroButton } = require('./SkipIntroButton');
 const useSkipIntroStreamUrl = require('./useSkipIntroStreamUrl');
+const useSkipIntroSegments = require('./useSkipIntroSegments');
 const NextVideoPopup = require('./NextVideoPopup');
 const StatisticsMenu = require('./StatisticsMenu');
 const OptionsMenu = require('./OptionsMenu');
@@ -128,22 +129,7 @@ const Player = () => {
         streamingServerBaseUrl,
         player.seriesInfo
     );
-    const [skipSegments, setSkipSegments] = React.useState([]);
-    React.useEffect(() => {
-        setSkipSegments([]); // reset when the episode changes
-        if (!seriesId || season === null || season === undefined || episode === null || episode === undefined || !runtimeSeconds || !streamUrl) return;
-
-        let ignore = false;
-        fetch('/analyze', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ seriesId, season, episode, runtimeSeconds, streamUrl }),
-        })
-            .then((res) => res.json())
-            .then((data) => { if (!ignore) setSkipSegments(data.segments || (data.segment ? [data.segment] : [])); })
-            .catch(() => { if (!ignore) setSkipSegments([]); }); // network/engine failure -> no button, per spec §5
-        return () => { ignore = true; };
-    }, [seriesId, season, episode, runtimeSeconds, streamUrl]);
+    const skipSegments = useSkipIntroSegments({ seriesId, season, episode, runtimeSeconds, streamUrl });
 
     const menusOpen = React.useMemo(() => {
         return optionsMenuOpen || subtitlesMenuOpen || audioMenuOpen || speedMenuOpen || statisticsMenuOpen || castDevicesMenuOpen || sideDrawerOpen || nextVideoPopupOpen;

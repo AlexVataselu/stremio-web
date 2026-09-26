@@ -14,6 +14,15 @@ describe('scrubText', () => {
         expect(scrubText(`http://127.0.0.1:11470/${HASH}/3/stats.json`)).toBe('http://127.0.0.1:11470/[infohash]/3/stats.json');
     });
 
+    it('hides the ids of what is being watched', () => {
+        expect(scrubText('Cannot read meta tt0068098 for kitsu:1376')).toBe('Cannot read meta [series] for [series]');
+        expect(scrubText('GET http://localhost:11470/stats')).toBe('GET http://localhost:11470/stats');
+    });
+
+    it('drops credentials written into a url', () => {
+        expect(scrubText('Failed to fetch https://user:pw@d.example/f.mkv')).toBe('Failed to fetch https://[redacted]@d.example/[redacted]');
+    });
+
     it('drops the player route hash and any query string', () => {
         expect(scrubText('http://127.0.0.1:4747/#/player/eAEBOgDF%2F3sidXJs')).toBe('http://127.0.0.1:4747/?[redacted]');
         expect(scrubText('http://127.0.0.1:11470/hlsv2/x.m3u8?mediaURL=https%3A%2F%2Fd.example')).toBe('http://127.0.0.1:11470/hlsv2/x.m3u8?[redacted]');
