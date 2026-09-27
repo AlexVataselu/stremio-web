@@ -2,20 +2,7 @@
 
 if (typeof process.env.SENTRY_DSN === 'string') {
     const Sentry = require('@sentry/browser');
-    const { scrubDeep } = require('./sentryScrub');
-    Sentry.init({
-        dsn: process.env.SENTRY_DSN,
-        release: `stremio-web@${process.env.VERSION}`,
-        environment: process.env.DEBUG ? 'development' : 'production',
-        integrations: [Sentry.browserTracingIntegration()],
-        tracesSampleRate: 1.0,
-        // Trace headers go only to the Skip Intro engine, so a slow answer shows
-        // the audio/subtitle work behind it; addons and the streaming server get none.
-        tracePropagationTargets: [/^\/analyze$/, /^http:\/\/(127\.0\.0\.1|localhost):4747\/analyze$/],
-        beforeSend: (event) => scrubDeep(event),
-        beforeSendTransaction: (event) => scrubDeep(event),
-        beforeBreadcrumb: (breadcrumb) => scrubDeep(breadcrumb),
-    });
+    Sentry.init({ dsn: process.env.SENTRY_DSN });
 }
 
 const Bowser = require('bowser');

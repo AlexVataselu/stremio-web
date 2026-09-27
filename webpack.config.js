@@ -22,18 +22,6 @@ const COMMIT_HASH = execSync('git rev-parse HEAD').toString().trim();
 // Append a per-restart timestamp so every dev-server restart forces a fresh fetch.
 const BUILD_PATH_ID = process.env.WEBPACK_SERVE ? `${COMMIT_HASH}-${Date.now()}` : COMMIT_HASH;
 
-// Under WSL2, 127.0.0.1 resolves to the WSL VM itself, not the Windows host
-// where the real streaming server (127.0.0.1:11470 from Windows' perspective)
-// actually runs. Resolve the Windows host IP as seen from inside WSL so the
-// devServer proxy below can reach it.
-const WINDOWS_HOST_IP = (() => {
-    try {
-        return execSync("ip route show default | awk '{print $3}'").toString().trim() || '127.0.0.1';
-    } catch (_) {
-        return '127.0.0.1';
-    }
-})();
-
 const THREAD_LOADER = {
     loader: 'thread-loader',
     options: {
@@ -223,7 +211,7 @@ module.exports = (env, argv) => ({
                     '/network-info',
                     '/device-info',
                 ],
-                target: `http://${WINDOWS_HOST_IP}:11470`,
+                target: 'http://127.0.0.1:11470',
                 changeOrigin: true,
             },
             {
@@ -238,7 +226,7 @@ module.exports = (env, argv) => ({
                 // loads, and the WASM core silently never finishes booting
                 // (blank page, no console error).
                 context: (pathname) => /^\/[0-9a-f]{40}(\/|$)/i.test(pathname) && !pathname.startsWith(`/${COMMIT_HASH}`),
-                target: `http://${WINDOWS_HOST_IP}:11470`,
+                target: 'http://127.0.0.1:11470',
                 changeOrigin: true,
             },
             {
@@ -246,8 +234,7 @@ module.exports = (env, argv) => ({
                 // page to fetch() same-origin / the active streaming-server
                 // origin -- a raw cross-port fetch to 127.0.0.1:4747 never
                 // leaves the renderer. Route it through this same origin
-                // instead. detection-engine runs in WSL alongside this dev
-                // server, so no Windows-host-IP translation is needed here.
+                // instead.
                 context: ['/analyze'],
                 target: 'http://127.0.0.1:4747',
                 changeOrigin: true,
