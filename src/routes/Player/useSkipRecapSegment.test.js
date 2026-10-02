@@ -55,10 +55,44 @@ describe('useSkipRecapSegment', () => {
         expect(result.current).toBeNull();
     });
 
+    test('after an episode switch, waits for the new file params instead of sending the old file name', async () => {
+        const EPISODE_2 = { ...EPISODE, episode: 2, streamUrl: 'http://127.0.0.1:11470/abc/1' };
+        const PARAMS_2 = { hash: null, size: null, filename: 'Show.S01E02-FLUX.mkv' };
+        const { result, rerender } = renderHook((props) => useSkipRecapSegment(props), {
+            initialProps: { ...EPISODE_2, videoParams: PARAMS_2 },
+        });
+        await waitFor(() => expect(result.current).toEqual({ start: 7, end: 27.5 }));
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+
+        // The player still holds episode 2's params when episode 3 starts.
+        rerender({ ...EPISODE, videoParams: PARAMS_2 });
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+        expect(result.current).toBeNull();
+
+        rerender({ ...EPISODE, videoParams: { ...PARAMS } });
+        await waitFor(() => expect(result.current).toEqual({ start: 7, end: 27.5 }));
+        expect(global.fetch).toHaveBeenCalledTimes(2);
+        expect(JSON.parse(global.fetch.mock.calls[1][1].body)).toEqual(expect.objectContaining({
+            episode: 3, streamUrl: EPISODE.streamUrl, filename: 'Show.S01E03-FLUX.mkv',
+        }));
+    });
+
     test('no button when the engine cannot be reached', async () => {
-        global.fetch = jest.fn(() => Promise.reject(new Error('offline')));
-        const { result } = renderHook(() => useSkipRecapSegment({ ...EPISODE, videoParams: PARAMS }));
-        await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+        const EPISODE_2 = { ...EPISODE, episode: 2, streamUrl: 'http://127.0.0.1:11470/abc/1' };
+        const { result, rerender } = renderHook((props) => useSkipRecapSegment(props), {
+            initialProps: { ...EPISODE_2, videoParams: { ...PARAMS, filename: 'Show.S01E02-FLUX.mkv' } },
+        });
+        await waitFor(() => expect(result.current).toEqual({ start: 7, end: 27.5 }));
+
+        let failed;
+        global.fetch = jest.fn(() => {
+            failed = Promise.reject(new Error('offline'));
+            return failed;
+        });
+        rerender({ ...EPISODE, videoParams: { ...PARAMS } });
+        await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+        await failed.catch(() => {});
+        await Promise.resolve();
         expect(result.current).toBeNull();
     });
 });

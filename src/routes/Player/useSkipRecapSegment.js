@@ -10,7 +10,19 @@ const useSkipRecapSegment = ({ seriesId, season, episode, streamUrl, videoParams
     const [recap, setRecap] = React.useState(null);
     const videosRef = React.useRef(videos);
     videosRef.current = videos;
-    const paramsReady = videoParams !== null && videoParams !== undefined;
+    // When the episode changes, the player still holds the previous file's
+    // params until it unloads: those must never be sent for the new episode.
+    const episodeKey = `${seriesId}:${season}:${episode}:${streamUrl}`;
+    const episodeKeyRef = React.useRef(null);
+    const lastParamsRef = React.useRef(null);
+    const staleParamsRef = React.useRef(null);
+    if (episodeKeyRef.current !== episodeKey) {
+        // The params held when the switch happened (none on the first episode).
+        staleParamsRef.current = episodeKeyRef.current === null ? null : lastParamsRef.current;
+        episodeKeyRef.current = episodeKey;
+    }
+    lastParamsRef.current = videoParams;
+    const paramsReady = videoParams !== null && videoParams !== undefined && videoParams !== staleParamsRef.current;
     const filename = paramsReady && typeof videoParams.filename === 'string' ? videoParams.filename : null;
     const hasVideos = Array.isArray(videos) && videos.length > 0;
     React.useEffect(() => {
