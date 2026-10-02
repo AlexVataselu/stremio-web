@@ -1,9 +1,10 @@
 // Copyright (C) 2017-2026 Smart code 203358507
 
-const MAX_PREVIOUS = 3;
+const MAX_PREVIOUS = 12;
 
-// The episodes a recap may quote, nearest first: up to three before this one
-// in the season, or the previous season's finale for a season premiere.
+// The episodes a recap may quote, nearest first: the 12 before this one in
+// airing order, across the start of the season (a premiere's recap quotes the
+// whole previous season; packs often join S2E1 and S2E2 in one file).
 const previousEpisodes = (videos, season, episode) => {
     const seen = new Set();
     const list = (videos || [])
@@ -18,11 +19,7 @@ const previousEpisodes = (videos, season, episode) => {
         .sort((a, b) => a.season - b.season || a.episode - b.episode);
     const at = list.findIndex((video) => video.season === season && video.episode === episode);
     if (at <= 0) return [];
-    const earlier = list.slice(0, at).reverse();
-    const sameSeason = earlier.filter((video) => video.season === season).slice(0, MAX_PREVIOUS);
-    if (sameSeason.length) return sameSeason;
-    const finale = earlier.find((video) => video.season < season);
-    return finale ? [finale] : [];
+    return list.slice(0, at).reverse().slice(0, MAX_PREVIOUS);
 };
 
 // The recap as a skippable segment, ending where the next intro starts so the
