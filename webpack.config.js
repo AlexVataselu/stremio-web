@@ -235,7 +235,7 @@ module.exports = (env, argv) => ({
                 // origin -- a raw cross-port fetch to 127.0.0.1:4747 never
                 // leaves the renderer. Route it through this same origin
                 // instead.
-                context: ['/analyze'],
+                context: ['/analyze', '/recap'],
                 target: 'http://127.0.0.1:4747',
                 changeOrigin: true,
             },

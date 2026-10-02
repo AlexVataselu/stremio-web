@@ -12,7 +12,7 @@ function introPosition(start, duration) {
 
 // An episode can hold several skippable stretches (a franchise ident at 0:00,
 // then the show's own titles after a cold open); the button follows the one playing.
-function SkipIntroButton({ className, segments, duration, currentTime, onSkip }) {
+function SkipIntroButton({ className, segments, duration, currentTime, onSkip, labelKey = 'PLAYER_SKIP_INTRO', defaultLabel = 'Skip Intro' }) {
     const { t } = useTranslation();
     const segment = (segments || []).find(({ start, end }) => currentTime >= start && currentTime < end);
     if (!segment) return null;
@@ -25,7 +25,7 @@ function SkipIntroButton({ className, segments, duration, currentTime, onSkip })
                 style={{ left: position, transform: `translateX(-${position})` }}
                 onClick={() => onSkip(segment.end)}
             >
-                {t('PLAYER_SKIP_INTRO', { defaultValue: 'Skip Intro' })}
+                {t(labelKey, { defaultValue: defaultLabel })}
             </button>
         </div>
     );
@@ -40,6 +40,8 @@ SkipIntroButton.propTypes = {
     duration: PropTypes.number,
     currentTime: PropTypes.number,
     onSkip: PropTypes.func.isRequired,
+    labelKey: PropTypes.string,
+    defaultLabel: PropTypes.string,
 };
 
 export default SkipIntroButton;

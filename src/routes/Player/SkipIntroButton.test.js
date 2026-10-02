@@ -113,4 +113,22 @@ describe('SkipIntroButton', () => {
         fireEvent.click(button);
         expect(onSkip).toHaveBeenCalledWith(990);
     });
+
+    test('shows the label it is given, e.g. for the recap', () => {
+        render(
+            <SkipIntroButton
+                segments={[{ start: 7, end: 27.5 }]}
+                currentTime={10}
+                labelKey="PLAYER_SKIP_RECAP"
+                defaultLabel="Skip Recap"
+                onSkip={() => {}}
+            />
+        );
+        expect(screen.getByRole('button')).toHaveTextContent('Skip Recap');
+    });
+
+    test('says Skip Intro by default', () => {
+        render(<SkipIntroButton segments={[{ start: 30, end: 60 }]} currentTime={40} onSkip={() => {}} />);
+        expect(screen.getByRole('button')).toHaveTextContent('Skip Intro');
+    });
 });

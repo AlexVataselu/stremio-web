@@ -21,6 +21,8 @@ const ControlBar = require('./ControlBar');
 const { default: SkipIntroButton } = require('./SkipIntroButton');
 const useSkipIntroStreamUrl = require('./useSkipIntroStreamUrl');
 const useSkipIntroSegments = require('./useSkipIntroSegments');
+const useSkipRecapSegment = require('./useSkipRecapSegment');
+const { recapSegments } = require('./skipRecap');
 const NextVideoPopup = require('./NextVideoPopup');
 const StatisticsMenu = require('./StatisticsMenu');
 const OptionsMenu = require('./OptionsMenu');
@@ -130,6 +132,15 @@ const Player = () => {
         player.seriesInfo
     );
     const skipSegments = useSkipIntroSegments({ seriesId, season, episode, runtimeSeconds, streamUrl });
+    const recap = useSkipRecapSegment({
+        seriesId,
+        season,
+        episode,
+        streamUrl,
+        videoParams: video.state.videoParams,
+        videos: player.metaItem !== null && player.metaItem.type === 'Ready' ? player.metaItem.content.videos : null,
+    });
+    const skipRecapSegments = React.useMemo(() => recapSegments(recap, skipSegments), [recap, skipSegments]);
 
     const menusOpen = React.useMemo(() => {
         return optionsMenuOpen || subtitlesMenuOpen || audioMenuOpen || speedMenuOpen || statisticsMenuOpen || castDevicesMenuOpen || sideDrawerOpen || nextVideoPopupOpen;
@@ -1089,6 +1100,15 @@ const Player = () => {
             <SkipIntroButton
                 className={classnames(styles['layer'], styles['skip-intro-layer'])}
                 segments={skipSegments}
+                duration={runtimeSeconds}
+                currentTime={typeof (keyboardSeekTime ?? video.state.time) === 'number' ? (keyboardSeekTime ?? video.state.time) / 1000 : null}
+                onSkip={(end) => commitSeek(end * 1000)}
+            />
+            <SkipIntroButton
+                className={classnames(styles['layer'], styles['skip-intro-layer'])}
+                segments={skipRecapSegments}
+                labelKey={'PLAYER_SKIP_RECAP'}
+                defaultLabel={'Skip Recap'}
                 duration={runtimeSeconds}
                 currentTime={typeof (keyboardSeekTime ?? video.state.time) === 'number' ? (keyboardSeekTime ?? video.state.time) / 1000 : null}
                 onSkip={(end) => commitSeek(end * 1000)}
