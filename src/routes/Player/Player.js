@@ -21,6 +21,7 @@ const ControlBar = require('./ControlBar');
 const { default: SkipIntroButton } = require('./SkipIntroButton');
 const useSkipIntroStreamUrl = require('./useSkipIntroStreamUrl');
 const useSkipIntroSegments = require('./useSkipIntroSegments');
+const usePrefetchNextIntro = require('./usePrefetchNextIntro');
 const useSkipRecapSegment = require('./useSkipRecapSegment');
 const { recapSegments } = require('./skipRecap');
 const NextVideoPopup = require('./NextVideoPopup');
@@ -50,6 +51,11 @@ const findTrackById = (tracks, id) => tracks.find((track) => track.id === id);
 const GAMEPAD_HANDLER_ID = 'player';
 
 const CAST_DEVICES_REFRESH_INTERVAL = 5000;
+
+// How far into an episode the next one's intro is looked for. Late enough that
+// this episode's own analysis has had its start, early enough that hopping
+// through episodes after half a minute each still finds the next one ready.
+const PREFETCH_NEXT_INTRO_AFTER = 30000;
 
 const Player = () => {
     const { stream, streamTransportUrl, metaTransportUrl, type, id, videoId } = useParams();
@@ -132,6 +138,14 @@ const Player = () => {
         player.seriesInfo
     );
     const skipSegments = useSkipIntroSegments({ seriesId, season, episode, runtimeSeconds, streamUrl });
+    usePrefetchNextIntro({
+        seriesId,
+        playing: season !== null && episode !== null ? `${season}:${episode}` : null,
+        nextVideo: player.nextVideo,
+        streamingServerUrl: streamingServerBaseUrl,
+        decodeStream: core.transport.decodeStream,
+        started: typeof video.state.time === 'number' && video.state.time >= PREFETCH_NEXT_INTRO_AFTER,
+    });
     const recap = useSkipRecapSegment({
         seriesId,
         season,
