@@ -8,6 +8,7 @@ import styles from './Chips.less';
 type Option = {
     label: string,
     value: string,
+    dimmed?: boolean,
 };
 
 type Props = {
@@ -20,12 +21,13 @@ const Chips = memo(({ options, selected, onSelect }: Props) => {
     return (
         <HorizontalScroll className={styles['chips']}>
             {
-                options.map(({ label, value }) => (
+                options.map(({ label, value, dimmed }) => (
                     <Chip
                         key={value}
                         label={label}
                         value={value}
                         active={selected.includes(value)}
+                        dimmed={dimmed}
                         onSelect={onSelect}
                     />
                 ))

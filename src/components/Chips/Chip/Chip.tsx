@@ -9,16 +9,17 @@ type Props = {
     label: string,
     value: string,
     active: boolean,
+    dimmed?: boolean,
     onSelect: (value: string) => void,
 };
 
-const Chip = memo(({ label, value, active, onSelect }: Props) => {
+const Chip = memo(({ label, value, active, dimmed, onSelect }: Props) => {
     const ref = useRef<HTMLElement>(null);
 
     const onClick = useCallback(({ currentTarget }: MouseEvent<HTMLElement>) => {
         const value = currentTarget.dataset['value'];
         value && onSelect(value);
-    }, [onselect]);
+    }, [onSelect]);
 
     useEffect(() => {
         active && ref.current?.scrollIntoView({
@@ -32,7 +33,7 @@ const Chip = memo(({ label, value, active, onSelect }: Props) => {
         <Button
             ref={ref}
             key={value}
-            className={classNames(styles['chip'], { [styles['active']]: active })}
+            className={classNames(styles['chip'], { [styles['active']]: active, [styles['dimmed']]: dimmed })}
             tabIndex={0}
             data-value={value}
             onClick={onClick}
