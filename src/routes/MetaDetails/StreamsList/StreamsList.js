@@ -13,7 +13,7 @@ const Stream = require('./Stream');
 const styles = require('./styles');
 const { usePlatform, useProfile } = require('stremio/common');
 const { default: SeasonEpisodePicker } = require('../EpisodePicker');
-const { filterStreams } = require('./streamFilters');
+const { filterStreams, appliedValues } = require('./streamFilters');
 const { useStreamFilters } = require('./useStreamFilters');
 const SiteFilterMenu = require('./SiteFilterMenu');
 
@@ -105,7 +105,7 @@ const StreamsList = ({ className, video, type, onEpisodeSearch, ...props }) => {
     }, [platform]);
     const resolutionChips = React.useMemo(() => {
         const options = streamFilters.resolutions.options;
-        const ticked = options.filter((option) => option.ticked).map((option) => option.value);
+        const applied = appliedValues(streamFilters.resolutions);
         return {
             options: [
                 { value: ALL_RESOLUTIONS_KEY, label: t('STREAM_FILTER_ALL', { defaultValue: 'All' }) },
@@ -115,7 +115,7 @@ const StreamsList = ({ className, video, type, onEpisodeSearch, ...props }) => {
                     dimmed: unavailable,
                 })),
             ],
-            selected: ticked.length > 0 ? ticked : [ALL_RESOLUTIONS_KEY],
+            selected: applied.length > 0 ? applied : [ALL_RESOLUTIONS_KEY],
             onSelect: (value) => {
                 scrollStreamsToTop();
                 if (value === ALL_RESOLUTIONS_KEY) clearFilter('resolutions');

@@ -108,4 +108,9 @@ const filterStreams = (streams, saved) => {
     };
 };
 
-module.exports = { RESOLUTIONS, resolutionOf, siteOf, filterStreams };
+// The picks of one control that act on the list shown: what it should name.
+const appliedValues = (control) => control.options
+    .filter((option) => option.ticked && !option.unavailable)
+    .map((option) => option.value);
+
+module.exports = { RESOLUTIONS, resolutionOf, siteOf, filterStreams, appliedValues };

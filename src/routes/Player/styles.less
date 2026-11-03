@@ -180,7 +180,8 @@ html:not(.active-slider-within) {
                 transition: background-color 100ms;
                 animation: skip-intro-slide-in 200ms ease-out;
 
-                .icon {
+                // The icon's class comes from SkipIntroButton, outside this CSS module.
+                & > svg {
                     flex: none;
                     width: 1.4rem;
                     height: 1.4rem;

@@ -11,6 +11,7 @@ const { default: useOutsideClick } = require('stremio/common/useOutsideClick');
 const menuStyles = require('stremio/components/MultiselectMenu/MultiselectMenu.less');
 const dropdownStyles = require('stremio/components/MultiselectMenu/Dropdown/Dropdown.less');
 const optionStyles = require('stremio/components/MultiselectMenu/Dropdown/Option/Option.less');
+const { appliedValues } = require('./streamFilters');
 const styles = require('./styles');
 
 // Looks like Stremio's MultiselectMenu, but ticks several sites and stays
@@ -19,27 +20,39 @@ const SiteFilterMenu = ({ className, options, onToggle, onClear }) => {
     const { t } = useTranslation();
     const [menuOpen, , closeMenu, toggleMenu] = useBinaryState(false);
     const menuRef = useOutsideClick(closeMenu);
+    const buttonRef = React.useRef(null);
     const ticked = options.filter((option) => option.ticked);
+    // The button names what acts on the list, not picks that gave way here.
+    const applied = appliedValues({ options });
 
-    const onKeyDown = React.useCallback((event) => {
-        if (event.key === 'Escape') closeMenu();
-    }, [closeMenu]);
+    // Stremio's buttons drop focus on mouse down, so a menu opened with the
+    // mouse never holds focus: listen on the document while it is open.
+    React.useEffect(() => {
+        if (!menuOpen) return undefined;
+        const onKeyDown = (event) => {
+            if (event.key !== 'Escape') return;
+            closeMenu();
+            if (buttonRef.current) buttonRef.current.focus();
+        };
+        document.addEventListener('keydown', onKeyDown);
+        return () => document.removeEventListener('keydown', onKeyDown);
+    }, [menuOpen, closeMenu]);
 
-    const label = ticked.length === 0 ?
+    const label = applied.length === 0 ?
         t('STREAM_FILTER_ALL_SITES', { defaultValue: 'All sites' })
         :
-        ticked.length === 1 ?
-            ticked[0].value
+        applied.length === 1 ?
+            applied[0]
             :
-            t('STREAM_FILTER_SITES', { count: ticked.length, defaultValue: '{{count}} sites' });
+            t('STREAM_FILTER_SITES', { count: applied.length, defaultValue: '{{count}} sites' });
 
     return (
         <div
             className={classnames(menuStyles['multiselect-menu'], { [menuStyles['active']]: menuOpen }, className)}
             ref={menuRef}
-            onKeyDown={onKeyDown}
         >
             <Button
+                ref={buttonRef}
                 className={classnames(menuStyles['multiselect-button'], { [menuStyles['open']]: menuOpen })}
                 onClick={toggleMenu}
                 tabIndex={0}

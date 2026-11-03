@@ -1,6 +1,6 @@
 // Copyright (C) 2017-2026 Smart code 203358507
 
-const { resolutionOf, siteOf, filterStreams } = require('./streamFilters');
+const { resolutionOf, siteOf, filterStreams, appliedValues } = require('./streamFilters');
 
 // Real Torrentio rows for The Simpsons S19E10.
 const r = (name, description) => ({ name, description });
@@ -70,4 +70,12 @@ test('a filter whose control is hidden is not applied', () => {
 
 test('chips are hidden with a single resolution group', () => {
     expect(filterStreams([KONTRAST, PACK], none).resolutions.shown).toBe(false);
+});
+
+test('only picks that act on this list count as applied', () => {
+    // The site gave way and 1080p is missing: nothing is applied, so the controls read "All".
+    const out = filterStreams([TPB720, TPB4K, KONTRAST], { resolutions: ['480p'], sites: ['ThePirateBay'] });
+    expect(appliedValues(out.resolutions)).toEqual([]);
+    expect(appliedValues(filterStreams([KONTRAST, TPB720, TPB4K], { resolutions: ['1080p'], sites: ['ThePirateBay'] }).sites)).toEqual([]);
+    expect(appliedValues(filterStreams([KONTRAST, TPB720], { resolutions: ['720p', '480p'], sites: [] }).resolutions)).toEqual(['720p']);
 });
