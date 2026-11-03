@@ -18,6 +18,13 @@ jest.mock('react-i18next', () => ({
     }),
 }));
 
+// The icon package ships an ES module Jest does not transform here; a stand-in
+// keeps the icon's name visible to the test.
+jest.mock('@stremio/stremio-icons/react', () => ({
+    __esModule: true,
+    default: ({ name, className }) => <svg data-icon={name} className={className} />,
+}));
+
 import SkipIntroButton from './SkipIntroButton';
 
 describe('SkipIntroButton', () => {
@@ -50,6 +57,13 @@ describe('SkipIntroButton', () => {
     test('renders at the exact start boundary (inclusive)', () => {
         render(<SkipIntroButton segments={[{ start: 30, end: 60 }]} currentTime={30} onSkip={() => {}} />);
         expect(screen.getByRole('button', { name: /skip intro/i })).toBeInTheDocument();
+    });
+
+    test('shows Stremio\'s skip icon before the label', () => {
+        render(<SkipIntroButton segments={[{ start: 0, end: 30 }]} duration={1300} currentTime={5} onSkip={() => {}} />);
+        const button = screen.getByRole('button', { name: 'Skip Intro' });
+        expect(button.querySelector('[data-icon="skip-forward"]')).not.toBeNull();
+        expect(button.firstChild.getAttribute('data-icon')).toBe('skip-forward');
     });
 
     test('clicking calls onSkip with the segment end time', () => {
