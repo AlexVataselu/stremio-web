@@ -7,14 +7,18 @@ const PropTypes = require('prop-types');
 const classnames = require('classnames');
 const { useTranslation } = require('react-i18next');
 const { default: Icon } = require('@stremio/stremio-icons/react');
-const { Button, Image, MultiselectMenu } = require('stremio/components');
+const { Button, Chips, Image, MultiselectMenu } = require('stremio/components');
 const { useCore } = require('stremio/core');
 const Stream = require('./Stream');
 const styles = require('./styles');
 const { usePlatform, useProfile } = require('stremio/common');
 const { default: SeasonEpisodePicker } = require('../EpisodePicker');
+const { filterStreams, appliedValues } = require('./streamFilters');
+const { useStreamFilters } = require('./useStreamFilters');
+const SiteFilterMenu = require('./SiteFilterMenu');
 
 const ALL_ADDONS_KEY = 'ALL';
+const ALL_RESOLUTIONS_KEY = 'all';
 
 const StreamsList = ({ className, video, type, onEpisodeSearch, ...props }) => {
     const { t } = useTranslation();
@@ -94,6 +98,40 @@ const StreamsList = ({ className, video, type, onEpisodeSearch, ...props }) => {
         };
     }, [streamsByAddon, effectiveSelectedAddon, onAddonSelected, t]);
 
+    const { saved: savedFilters, toggle: toggleFilter, clear: clearFilter } = useStreamFilters();
+    const streamFilters = React.useMemo(() => filterStreams(filteredStreams, savedFilters), [filteredStreams, savedFilters]);
+    const scrollStreamsToTop = React.useCallback(() => {
+        streamsContainerRef.current?.scrollTo({ top: 0, left: 0, behavior: platform.name === 'ios' ? 'smooth' : 'instant' });
+    }, [platform]);
+    const resolutionChips = React.useMemo(() => {
+        const options = streamFilters.resolutions.options;
+        const applied = appliedValues(streamFilters.resolutions);
+        return {
+            options: [
+                { value: ALL_RESOLUTIONS_KEY, label: t('STREAM_FILTER_ALL', { defaultValue: 'All' }) },
+                ...options.map(({ value, count, unavailable }) => ({
+                    value,
+                    label: `${value === '4k' ? '4K' : value === 'other' ? t('STREAM_FILTER_OTHER', { defaultValue: 'Other' }) : value} ${count}`,
+                    dimmed: unavailable,
+                })),
+            ],
+            selected: applied.length > 0 ? applied : [ALL_RESOLUTIONS_KEY],
+            onSelect: (value) => {
+                scrollStreamsToTop();
+                if (value === ALL_RESOLUTIONS_KEY) clearFilter('resolutions');
+                else toggleFilter('resolutions', value);
+            },
+        };
+    }, [streamFilters, toggleFilter, clearFilter, scrollStreamsToTop, t]);
+    const onSiteToggle = React.useCallback((value) => {
+        scrollStreamsToTop();
+        toggleFilter('sites', value);
+    }, [toggleFilter, scrollStreamsToTop]);
+    const onSitesClear = React.useCallback(() => {
+        scrollStreamsToTop();
+        clearFilter('sites');
+    }, [clearFilter, scrollStreamsToTop]);
+
     const handleEpisodePicker = React.useCallback((season, episode) => {
         onEpisodeSearch(season, episode);
     }, [onEpisodeSearch]);
@@ -121,6 +159,17 @@ const StreamsList = ({ className, video, type, onEpisodeSearch, ...props }) => {
                         <MultiselectMenu
                             {...selectableOptions}
                             className={styles['select-input-container']}
+                        />
+                        :
+                        null
+                }
+                {
+                    streamFilters.sites.shown ?
+                        <SiteFilterMenu
+                            className={styles['site-filter-container']}
+                            options={streamFilters.sites.options}
+                            onToggle={onSiteToggle}
+                            onClear={onSitesClear}
                         />
                         :
                         null
@@ -170,8 +219,16 @@ const StreamsList = ({ className, video, type, onEpisodeSearch, ...props }) => {
                             </div>
                             :
                             <React.Fragment>
+                                {
+                                    streamFilters.resolutions.shown ?
+                                        <div className={styles['resolution-chips']}>
+                                            <Chips {...resolutionChips} />
+                                        </div>
+                                        :
+                                        null
+                                }
                                 <div className={styles['streams-container']} ref={streamsContainerRef}>
-                                    {filteredStreams.map((stream, index) => (
+                                    {streamFilters.visible.map((stream, index) => (
                                         <Stream
                                             key={index}
                                             videoId={video?.id}

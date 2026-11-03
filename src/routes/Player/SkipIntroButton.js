@@ -3,6 +3,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
+import Icon from '@stremio/stremio-icons/react';
 
 function introPosition(start, duration) {
     if (!(duration > 0)) return '0%';
@@ -25,7 +26,8 @@ function SkipIntroButton({ className, segments, duration, currentTime, onSkip, l
                 style={{ left: position, transform: `translateX(-${position})` }}
                 onClick={() => onSkip(segment.end)}
             >
-                {t(labelKey, { defaultValue: defaultLabel })}
+                <Icon className="icon" name="skip-forward" />
+                <span>{t(labelKey, { defaultValue: defaultLabel })}</span>
             </button>
         </div>
     );

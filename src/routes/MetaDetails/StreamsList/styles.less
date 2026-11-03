@@ -104,8 +104,10 @@
             }
         }
 
+        // Gives way to the dropdowns (it ellipsises) instead of pushing them off the row.
         .episode-title {
-            min-width: 45%;
+            flex: 1 1 0;
+            min-width: 0;
             color: var(--primary-foreground-color);
             white-space: nowrap;
             overflow: hidden;
@@ -113,8 +115,8 @@
         }
 
         .select-input-container {
-            min-width: 40%;
-            flex-grow: 1;
+            flex: 0 1 auto;
+            min-width: 0;
             background-color: none;
 
             &:hover, &:focus, &:global(.active) {
@@ -133,6 +135,38 @@
                 overflow: auto;
             }
         }
+    }
+
+    .site-filter-container {
+        flex: 0 1 auto;
+        min-width: 0;
+
+        // Wide enough for site names, and kept inside the panel at its right edge.
+        .site-dropdown {
+            width: auto;
+            min-width: 15rem;
+            left: auto;
+            right: 0;
+            white-space: nowrap;
+        }
+
+        &:hover, &:focus, &:global(.active) {
+            background-color: var(--overlay-color);
+        }
+    }
+
+    .site-count {
+        margin-left: 0.5em;
+        opacity: 0.6;
+    }
+
+    .site-unavailable {
+        opacity: 0.5;
+    }
+
+    .resolution-chips {
+        flex: none;
+        margin: 0.5em 1em 0 1em;
     }
 
     .streams-container {
